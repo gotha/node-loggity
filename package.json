@@ -1,5 +1,5 @@
 {
-  "name": "node-loggity",
+  "name": "@gotha/node-loggity",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,5 +11,9 @@
   "license": "ISC",
   "devDependencies": {
     "eslint": "^8.2.0"
+  },
+  "repository": "git@github.com:gotha/node-loggity.git",
+  "publishConfig": {
+    "registry":"https://npm.pkg.github.com"
   }
 }

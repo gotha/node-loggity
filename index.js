@@ -1,26 +1,23 @@
-module.exports = (serviceName, logLevel = 'INFO', opts = {}) => {
+const logLevels = ['ERROR', 'WARN', 'WARNING', 'INFO', 'DEBUG'];
 
-  const logLevels = ['ERROR', 'WARN', 'WARNING', 'INFO', 'DEBUG'];
+module.exports = (serviceName, logLevel = 'INFO', {
+  logPrinter,
+  callerOffset,
+  stringifyOutput,
+} = {}) => {
+
   if (logLevels.indexOf(logLevel) < 0) {
     throw new Error(`Invalid log level ${logLevel}, allowed values are ${logLevels.join(',')}`);
   }
 
-  if (typeof opts.callerOffset === 'undefined') {
-    opts.callerOffset = 4;
-  }
-
-  if (typeof opts.stringify === 'undefined') {
-    opts.stringify = true;
-  }
-
-  if (typeof opts.logPrinter == 'undefined') {
-    opts.logPrinter = console.log;
-  }
+  logPrinter = (typeof logPrinter === 'function') ? logPrinter : console.log;
+  stringifyOutput = (typeof stringifyOutput === 'undefined') ? 4 : stringifyOutput;
+  callerOffset = (typeof callerOffset === 'undefined') ? true : callerOffset;
 
   const getCaller = () => {
     const err = new Error();
     const stack = err.stack.split('\n');
-    if (stack.length < opts.callerOffset + 1) {
+    if (stack.length < callerOffset + 1) {
       return;
     }
     const callerRegex = /.*\((?<caller>.*)\)/u;
@@ -47,10 +44,10 @@ module.exports = (serviceName, logLevel = 'INFO', opts = {}) => {
 
 
     let logLine = data;
-    if (opts.stringify) {
+    if (stringifyOutput) {
       logLine = JSON.stringify(data);
     }
-    opts.logPrinter(logLine);
+    logPrinter(logLine);
   };
 
   const debug = msg => {

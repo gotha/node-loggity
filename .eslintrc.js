@@ -160,7 +160,7 @@ module.exports = {
     'no-new-require': 'error',
     'no-new-wrappers': 'error',
     'no-octal-escape': 'error',
-    'no-param-reassign': 'error',
+    'no-param-reassign': 'off',
     'no-path-concat': 'off',
     'no-plusplus': 'error',
     'no-process-env': 'off',

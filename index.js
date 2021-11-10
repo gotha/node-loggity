@@ -4,16 +4,15 @@ module.exports = (serviceName, logLevel = 'INFO', {
   logPrinter,
   callerOffset,
   stringifyOutput,
-} = {}) => {
+} = {
+  logPrinter: console.log,
+  stringifyOutput: true,
+  callerOffset: 4,
+}) => {
 
   if (logLevels.indexOf(logLevel) < 0) {
     throw new Error(`Invalid log level ${logLevel}, allowed values are ${logLevels.join(',')}`);
   }
-
-  logPrinter = (typeof logPrinter === 'function') ? logPrinter : console.log;
-  stringifyOutput = (typeof stringifyOutput === 'undefined') ? 4 : stringifyOutput;
-  callerOffset = (typeof callerOffset === 'undefined') ? true : callerOffset;
-
   const getCaller = () => {
     const err = new Error();
     const stack = err.stack.split('\n');
@@ -39,7 +38,7 @@ module.exports = (serviceName, logLevel = 'INFO', {
       data.msg = msg;
     }
     if (typeof msg === 'object') {
-      data = {...msg};
+      data = {...data, ...msg};
     }
 
 

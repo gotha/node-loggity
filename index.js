@@ -30,45 +30,50 @@ module.exports = (serviceName, logLevel = 'INFO', opts = {}) => {
     }
   };
 
-  const log = msg => {
-    let data = {};
+  const log = (msg, level) => {
+    let data = {
+      level,
+      serviceName,
+      time: new Date(),
+      caller: getCaller(),
+    };
+
     if (typeof msg === 'string') {
       data.msg = msg;
     }
-
     if (typeof msg === 'object') {
       data = {...msg};
     }
-    data.serviceName = serviceName;
-    data.caller = getCaller();
-    data.time = new Date();
+
+
+    let logLine = data;
     if (opts.stringify) {
-      return opts.logPrinter(JSON.stringify(data));
+      logLine = JSON.stringify(data);
     }
-    opts.logPrinter(data);
+    opts.logPrinter(logLine);
   };
 
   const debug = msg => {
-    if (['ERROR', 'WARN', 'WARNING', 'INFO', 'DEBUG'].indexOf(logLevel) >= 0) {
-      log(msg);
+    if (['DEBUG'].indexOf(logLevel) >= 0) {
+      log(msg, 'debug');
     }
   };
 
   const info = msg => {
-    if (['ERROR', 'WARN', 'INFO'].indexOf(logLevel) >= 0) {
-      log(msg);
+    if (['DEBUG', 'INFO'].indexOf(logLevel) >= 0) {
+      log(msg, 'info');
     }
   };
 
   const warning = msg => {
-    if (['ERROR', 'WARN', 'WARNING'].indexOf(logLevel) >= 0) {
-      log(msg);
+    if (['DEBUG', 'INFO', 'WARN', 'WARNING'].indexOf(logLevel) >= 0) {
+      log(msg, 'warning');
     }
   };
 
   const error = msg => {
-    if (['ERROR'].indexOf(logLevel) >= 0) {
-      log(msg);
+    if (['DEBUG', 'INFO', 'WARN', 'WARNING', 'ERROR'].indexOf(logLevel) >= 0) {
+      log(msg, 'error');
     }
   };
 

@@ -1,37 +1,48 @@
 const logLevels = ['ERROR', 'WARN', 'WARNING', 'INFO', 'DEBUG'];
 
-module.exports = (serviceName, logLevel = 'INFO', {
-  logPrinter,
-  callerOffset,
-  stringifyOutput,
-} = {
-  logPrinter: console.log,
-  stringifyOutput: true,
-  callerOffset: 4,
-}) => {
-
-  if (logLevels.indexOf(logLevel) < 0) {
-    throw new Error(`Invalid log level ${logLevel}, allowed values are ${logLevels.join(',')}`);
+const getCaller = callerOffset => {
+  const err = new Error();
+  const stack = err.stack.split('\n');
+  if (stack && stack.length < callerOffset + 1) {
+    return;
   }
-  const getCaller = () => {
-    const err = new Error();
-    const stack = err.stack.split('\n');
-    if (stack.length < callerOffset + 1) {
-      return;
-    }
-    const callerRegex = /.*\((?<caller>.*)\)/u;
-    const res = stack[4].trim().match(callerRegex);
-    if(res.length >= 2) {
-      return res[1];
-    }
-  };
+  const callerRegex = /.*\((?<caller>.*)\)/u;
+  const res = stack[callerOffset].trim().match(callerRegex);
+  if(res && res.length >= 2) {
+    return res[1];
+  }
+};
+
+const defaultOptions = {
+  callerOffset: 4,
+  stringifyOutput: true,
+  logPrinter: console.log,
+  currentTimeGenerator: () => new Date(),
+  callerFuncIdentifier: getCaller
+};
+
+module.exports = (serviceName, logLevel = 'INFO', opts = {}) => {
+  /* eslint no-param-reassign: ["off"]*/
+  logLevel = (typeof logLevel === 'string') ? logLevel.toUpperCase() : '';
+  if (logLevels.indexOf(logLevel) < 0) {
+    const error = `Invalid log level '${logLevel}'`;
+    throw new Error(error);
+  }
+
+  const {
+    currentTimeGenerator,
+    callerFuncIdentifier,
+    stringifyOutput,
+    logPrinter,
+    callerOffset
+  } = {...defaultOptions, ...opts};
 
   const log = (msg, level) => {
     let data = {
       level,
       serviceName,
-      time: new Date(),
-      caller: getCaller(),
+      time: currentTimeGenerator(),
+      caller: callerFuncIdentifier(callerOffset),
     };
 
     if (typeof msg === 'string') {
@@ -40,7 +51,6 @@ module.exports = (serviceName, logLevel = 'INFO', {
     if (typeof msg === 'object') {
       data = {...data, ...msg};
     }
-
 
     let logLine = data;
     if (stringifyOutput) {
@@ -73,15 +83,29 @@ module.exports = (serviceName, logLevel = 'INFO', {
     }
   };
 
+  const build = (state = {}) => {
+    const logLine = {
+      debug: msg => debug({...state, ...{msg}}),
+      info: msg => info({...state, ...{msg}}),
+      warning: msg => warning({...state, ...{msg}}),
+      error: msg => error({...state, ...{msg}}),
+    };
 
-  const logger = {
+    const withField = (k, v) => {
+      state[k] = v;
+      return logLine;
+    };
+
+    logLine.withField = withField;
+    return logLine;
+  };
+
+  return {
+    build,
     debug,
     info,
     warning,
     warn: warning,
     error,
   };
-
-  return logger;
-
 };

@@ -96,7 +96,13 @@ module.exports = (serviceName, logLevel = 'INFO', opts = {}) => {
       return logLine;
     };
 
+    const withError = err => {
+      withField("error", err)
+      withField('stack', err.stack)
+    }
+
     logLine.withField = withField;
+    logLine.withError = withError;
     return logLine;
   };
 
